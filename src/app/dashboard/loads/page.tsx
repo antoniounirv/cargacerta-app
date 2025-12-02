@@ -44,6 +44,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/hooks/use-toast";
 import { useDashboard } from "../layout";
 import { BackButton } from "@/components/dashboard/back-button";
+import { CityAutocomplete } from "@/components/city-autocomplete";
 
 export default function LoadsPage() {
   const [isDialogOpen, setDialogOpen] = useState(false);
@@ -99,8 +100,8 @@ export default function LoadsPage() {
 
     const formData = new FormData(e.currentTarget);
     const loadData: Partial<Load> = {
-        origem: formData.get('origin') as string,
-        destino: formData.get('destination') as string,
+        origem: origin,
+        destino: destination,
         motoristaId: formData.get('driver') as string,
         status: formData.get('status') as LoadStatus,
         data_saida: formData.get('departure_date') as string,
@@ -231,7 +232,12 @@ export default function LoadsPage() {
         </CardContent>
       </Card>
       
-      <Dialog open={isDialogOpen} onOpenChange={setDialogOpen}>
+      <Dialog open={isDialogOpen} onOpenChange={(isOpen) => {
+        setDialogOpen(isOpen);
+        if (!isOpen) {
+            setSelectedLoad(null);
+        }
+      }}>
         <DialogContent className="sm:max-w-lg">
           <form onSubmit={handleSave}>
             <DialogHeader>
@@ -244,20 +250,18 @@ export default function LoadsPage() {
               <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
                       <Label htmlFor="origin">Origem</Label>
-                      <Input 
-                        id="origin"
-                        name="origin"
-                        placeholder="Digite a cidade de origem"
-                        defaultValue={selectedLoad?.origem}
+                      <CityAutocomplete
+                        value={origin}
+                        onSelect={setOrigin}
+                        placeholder="Selecione a origem"
                       />
                   </div>
                   <div className="space-y-2">
                       <Label htmlFor="destination">Destino</Label>
-                       <Input
-                          id="destination"
-                          name="destination"
-                          placeholder="Digite a cidade de destino"
-                          defaultValue={selectedLoad?.destino}
+                      <CityAutocomplete
+                        value={destination}
+                        onSelect={setDestination}
+                        placeholder="Selecione o destino"
                       />
                   </div>
               </div>
