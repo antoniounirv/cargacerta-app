@@ -22,7 +22,7 @@ import { UserNav } from "@/components/dashboard/user-nav";
 import { BackButton } from "@/components/dashboard/back-button";
 import { useToast } from "@/hooks/use-toast";
 
-const MERCADO_PAGO_PUBLIC_KEY = "TEST-7c763bbf-5b50-41f8-87f6-09e9e3734c9d";
+const MERCADO_PAGO_PUBLIC_KEY = process.env.NEXT_PUBLIC_MERCADO_PAGO_PUBLIC_KEY;
 
 export default function BillingPage() {
     const [isYearly, setIsYearly] = useState(false);
@@ -37,6 +37,8 @@ export default function BillingPage() {
         // A inicialização do Mercado Pago é feita apenas uma vez.
         if (MERCADO_PAGO_PUBLIC_KEY) {
             initMercadoPago(MERCADO_PAGO_PUBLIC_KEY, { locale: 'pt-BR' });
+        } else {
+            console.error("Chave pública do Mercado Pago não encontrada. Verifique as variáveis de ambiente.");
         }
     }, []);
 
