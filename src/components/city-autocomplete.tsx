@@ -30,7 +30,7 @@ interface CityAutocompleteProps {
 export function CityAutocomplete({ value, onValueChange, placeholder }: CityAutocompleteProps) {
   const [open, setOpen] = React.useState(false)
   const [search, setSearch] = React.useState("")
-  const [debouncedSearch] = useDebounce(search, 1000);
+  const [debouncedSearch] = useDebounce(search, 1500);
   const [suggestions, setSuggestions] = React.useState<string[]>([]);
   const [isLoading, setIsLoading] = React.useState(false);
 
