@@ -34,7 +34,10 @@ export default function BillingPage() {
     const [isSubmitting, setSubmitting] = useState(false);
 
     useEffect(() => {
-        initMercadoPago(MERCADO_PAGO_PUBLIC_KEY, { locale: 'pt-BR' });
+        // A inicialização do Mercado Pago é feita apenas uma vez.
+        if (!window.mercadoPagoInstance) {
+            initMercadoPago(MERCADO_PAGO_PUBLIC_KEY, { locale: 'pt-BR' });
+        }
     }, []);
 
     const planFeatures = {
@@ -52,28 +55,44 @@ export default function BillingPage() {
     const handleBack = () => {
         setCheckout(false);
         setSelectedPlan(null);
-        setBrickReady(false);
-        setSubmitting(false);
+        setBrickReady(false); // Garante que o estado seja resetado
+        setSubmitting(false); // Reseta o estado de submissão
     }
     
     // Simulação do envio do pagamento para o backend
     const onPaymentSubmit = async (formData: any) => {
+        if (isSubmitting) return;
         setSubmitting(true);
-        console.log("Form data (to send to backend):", formData);
+
+        console.log("======================================");
+        console.log("INÍCIO DA SIMULAÇÃO DE SUBMISSÃO");
+        console.log("O formulário de pagamento foi enviado.");
+        console.log("Estes são os dados que seriam enviados para o seu backend:", formData);
+        console.log("No seu backend, você usaria o seu Access Token SECRETO para chamar a API do Mercado Pago e processar esta transação.");
+        console.log("======================================");
         
-        // Simula uma chamada de API para o backend
+        // Simula uma chamada de API para o backend (dura 2 segundos)
         await new Promise(resolve => setTimeout(resolve, 2000));
 
         toast({
-            title: "Pagamento Recebido!",
-            description: "Este é um teste. No mundo real, seu backend confirmaria o pagamento com o Mercado Pago.",
+            title: "Pagamento Recebido com Sucesso!",
+            description: "Isso é uma simulação. Em um app real, seu backend confirmaria o pagamento com o Mercado Pago e atualizaria a assinatura.",
         });
 
-        // Simula sucesso e volta para a tela de planos
+        // Simula sucesso e volta para a tela de planos após 3 segundos
         setTimeout(() => {
             handleBack();
         }, 3000);
     };
+    
+    // Função para acionar o submit do Brick programaticamente
+    const triggerPaymentSubmit = () => {
+       const submitButton = document.getElementById('submit-payment-btn-hidden');
+       if (submitButton) {
+           submitButton.click();
+       }
+    }
+
 
     if (isCheckout && selectedPlan) {
         const initialization = {
@@ -95,10 +114,12 @@ export default function BillingPage() {
              <div className="flex-1 space-y-4 p-4 md:p-8 pt-6">
                  <Card>
                     <CardHeader>
-                        <CardTitle className="font-headline text-2xl">Finalizar Pagamento</CardTitle>
+                        <BackButton />
+                        <CardTitle className="font-headline text-2xl pt-4">Finalizar Pagamento</CardTitle>
                         <CardDescription>Você está assinando o plano <strong>{selectedPlan.nome}</strong> por <strong>R${selectedPlan.price.toFixed(2)}</strong>/{isYearly ? 'ano' : 'mês'}.</CardDescription>
                     </CardHeader>
                     <CardContent>
+                        {/* Container para o Brick do Mercado Pago */}
                         <div id="cardPaymentBrick_container" className={cn(!isBrickReady && "flex justify-center items-center min-h-[200px]")}>
                             {!isBrickReady && <Loader2 className="h-8 w-8 animate-spin text-primary" />}
                         </div>
@@ -106,7 +127,8 @@ export default function BillingPage() {
                     <CardFooter className="flex justify-between">
                          <Button variant="outline" onClick={handleBack} disabled={isSubmitting}>Voltar</Button>
                          <Button 
-                            id="submit-payment-btn" 
+                            id="submit-payment-btn-visible" 
+                            onClick={triggerPaymentSubmit}
                             disabled={!isBrickReady || isSubmitting}
                          >
                             {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
@@ -115,18 +137,25 @@ export default function BillingPage() {
                     </CardFooter>
                  </Card>
 
-                 {/* O CardPayment é montado aqui e se anexa ao container acima */}
+                 {/* O CardPayment é montado de forma oculta e se anexa ao container. 
+                     O botão de submit dele também é oculto para usarmos nosso próprio botão estilizado. */}
                  <div className="opacity-0 absolute -z-50">
                     <CardPayment
                         initialization={initialization}
                         customization={customization}
                         onSubmit={onPaymentSubmit}
-                        onReady={() => setBrickReady(true)}
+                        onReady={() => {
+                            console.log("Card Payment Brick está pronto!");
+                            setBrickReady(true);
+                        }}
                         onError={(error) => {
-                            console.error(error);
-                            toast({ variant: "destructive", title: "Erro no pagamento", description: "Verifique os dados do cartão."});
+                            console.error("Erro no Card Payment Brick:", error);
+                            toast({ variant: "destructive", title: "Erro no pagamento", description: "Não foi possível carregar o formulário de pagamento. Tente novamente."});
+                            setSubmitting(false); // Libera o botão em caso de erro
                         }}
                     />
+                    {/* Botão de submit real do Brick que será acionado programaticamente */}
+                    <button id="submit-payment-btn-hidden" type="submit"></button>
                  </div>
              </div>
         )
