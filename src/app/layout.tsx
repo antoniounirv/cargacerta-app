@@ -17,12 +17,6 @@ const poppins = Poppins({
   variable: '--font-poppins' 
 });
 
-declare global {
-    interface Window {
-        mercadoPagoInstance: any;
-    }
-}
-
 export default function RootLayout({
   children,
 }: Readonly<{

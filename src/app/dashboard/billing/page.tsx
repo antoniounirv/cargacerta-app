@@ -2,7 +2,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { initMercadoPago, CardPayment } from '@mercadopago/sdk-react'
+import { initMercadoPago, Payment } from '@mercadopago/sdk-react'
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -35,7 +35,7 @@ export default function BillingPage() {
 
     useEffect(() => {
         // A inicialização do Mercado Pago é feita apenas uma vez.
-        if (!window.mercadoPagoInstance) {
+        if (MERCADO_PAGO_PUBLIC_KEY) {
             initMercadoPago(MERCADO_PAGO_PUBLIC_KEY, { locale: 'pt-BR' });
         }
     }, []);
@@ -69,6 +69,14 @@ export default function BillingPage() {
         console.log("O formulário de pagamento foi enviado.");
         console.log("Estes são os dados que seriam enviados para o seu backend:", formData);
         console.log("No seu backend, você usaria o seu Access Token SECRETO para chamar a API do Mercado Pago e processar esta transação.");
+        console.log("Método de Pagamento Escolhido:", formData.payment_type_id);
+        if (formData.payment_type_id === 'ticket') {
+            console.log("Ação do Backend: Gerar Boleto e enviar para o cliente.");
+        } else if (formData.payment_type_id === 'bank_transfer') { // PIX
+            console.log("Ação do Backend: Gerar QR Code do PIX e exibir para o cliente.");
+        } else {
+             console.log("Ação do Backend: Processar pagamento com cartão de crédito.");
+        }
         console.log("======================================");
         
         // Simula uma chamada de API para o backend (dura 2 segundos)
@@ -84,14 +92,6 @@ export default function BillingPage() {
             handleBack();
         }, 3000);
     };
-    
-    // Função para acionar o submit do Brick programaticamente
-    const triggerPaymentSubmit = () => {
-       const submitButton = document.getElementById('submit-payment-btn-hidden');
-       if (submitButton) {
-           submitButton.click();
-       }
-    }
 
 
     if (isCheckout && selectedPlan) {
@@ -103,6 +103,13 @@ export default function BillingPage() {
         };
 
         const customization = {
+            paymentMethods: {
+                ticket: "all",
+                bankTransfer: "all", // Habilita Pix
+                creditCard: "all",
+                debitCard: "all",
+                mercadoPago: "all",
+            },
             visual: {
                 style: {
                     theme: document.body.classList.contains('dark') ? 'dark' : 'default',
@@ -119,44 +126,30 @@ export default function BillingPage() {
                         <CardDescription>Você está assinando o plano <strong>{selectedPlan.nome}</strong> por <strong>R${selectedPlan.price.toFixed(2)}</strong>/{isYearly ? 'ano' : 'mês'}.</CardDescription>
                     </CardHeader>
                     <CardContent>
-                        {/* Container para o Brick do Mercado Pago */}
-                        <div id="cardPaymentBrick_container" className={cn(!isBrickReady && "flex justify-center items-center min-h-[200px]")}>
+                        {/* O Payment Brick será montado aqui */}
+                        <div className={cn(!isBrickReady && "flex justify-center items-center min-h-[200px]")}>
                             {!isBrickReady && <Loader2 className="h-8 w-8 animate-spin text-primary" />}
                         </div>
+                        <Payment
+                            initialization={initialization}
+                            customization={customization}
+                            onSubmit={onPaymentSubmit}
+                            onReady={() => {
+                                console.log("Payment Brick está pronto!");
+                                setBrickReady(true);
+                            }}
+                            onError={(error) => {
+                                console.error("Erro no Payment Brick:", error);
+                                toast({ variant: "destructive", title: "Erro no pagamento", description: "Não foi possível carregar o formulário de pagamento. Tente novamente."});
+                                setSubmitting(false); // Libera o botão em caso de erro
+                            }}
+                        />
                     </CardContent>
                     <CardFooter className="flex justify-between">
                          <Button variant="outline" onClick={handleBack} disabled={isSubmitting}>Voltar</Button>
-                         <Button 
-                            id="submit-payment-btn-visible" 
-                            onClick={triggerPaymentSubmit}
-                            disabled={!isBrickReady || isSubmitting}
-                         >
-                            {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                            {isSubmitting ? "Processando..." : "Pagar Agora"}
-                         </Button>
+                         {/* O botão de submit é gerenciado pelo próprio Brick, então não precisamos de um botão customizado para pagar */}
                     </CardFooter>
                  </Card>
-
-                 {/* O CardPayment é montado de forma oculta e se anexa ao container. 
-                     O botão de submit dele também é oculto para usarmos nosso próprio botão estilizado. */}
-                 <div className="opacity-0 absolute -z-50">
-                    <CardPayment
-                        initialization={initialization}
-                        customization={customization}
-                        onSubmit={onPaymentSubmit}
-                        onReady={() => {
-                            console.log("Card Payment Brick está pronto!");
-                            setBrickReady(true);
-                        }}
-                        onError={(error) => {
-                            console.error("Erro no Card Payment Brick:", error);
-                            toast({ variant: "destructive", title: "Erro no pagamento", description: "Não foi possível carregar o formulário de pagamento. Tente novamente."});
-                            setSubmitting(false); // Libera o botão em caso de erro
-                        }}
-                    />
-                    {/* Botão de submit real do Brick que será acionado programaticamente */}
-                    <button id="submit-payment-btn-hidden" type="submit"></button>
-                 </div>
              </div>
         )
     }
