@@ -1,20 +1,15 @@
 'use client';
 
-import { useEffect, type ReactNode } from 'react';
+import type { ReactNode } from 'react';
 import { useUser } from '@/firebase';
-import { useRouter } from 'next/navigation';
 import { Loader2 } from 'lucide-react';
 
 export default function HomeLayout({ children }: { children: ReactNode }) {
     const { user, isUserLoading } = useUser();
-    const router = useRouter();
-
-    useEffect(() => {
-        if (!isUserLoading && user) {
-            router.push('/dashboard');
-        }
-    }, [isUserLoading, user, router]);
-
+    
+    // O redirecionamento será tratado pelo DashboardLayout,
+    // então se o usuário estiver logado, podemos mostrar um loader aqui
+    // enquanto o DashboardProvider assume.
     if (isUserLoading || user) {
         return (
             <div className="flex h-screen w-full items-center justify-center bg-background">
@@ -23,5 +18,6 @@ export default function HomeLayout({ children }: { children: ReactNode }) {
         );
     }
 
+    // Se não estiver carregando e não houver usuário, exibe a página principal
     return <>{children}</>;
 }
