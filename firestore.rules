@@ -1,0 +1,177 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    /**
+     * Core Philosophy: This ruleset enforces a strict multi-tenant security model
+     * where all company-specific data is isolated. The authenticated user's UID is
+     * treated as the company identifier (`empresaId`), ensuring that a company
+     * can only access its own data.
+     *
+     * Data Structure: Data is hierarchically organized. Top-level collections
+     * include `empresas` for company profiles and `planos` for public subscription
+     * information. All company-specific data (like `motoristas`, `cargas`, and
+     * `documentos`) is stored in subcollections under `/empresas/{empresaId}`.
+     *
+     * Key Security Decisions:
+     * - Company Isolation: A user can only interact with documents where the path's
+     *   `{empresaId}` matches their own `request.auth.uid`.
+     * - No User Listing: Listing the entire `empresas` collection is explicitly
+     *   disallowed to protect the privacy of all registered companies.
+     * - Public Read-Only Data: The `planos` collection is publicly readable by
+     *   anyone but is locked down against all writes, making it admin-managed data.
+     * - Denormalization for Authorization: Child documents (e.g., a Motorista) must
+     *   contain an `empresaId` field. This field is validated against the path on
+     *   creation and made immutable on updates to ensure data integrity and simple,
+     *   performant authorization checks without needing extra database reads.
+     */
+
+    // =====================================================================
+    // Helper Functions
+    // =====================================================================
+
+    /**
+     * Checks if a user is authenticated.
+     */
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    /**
+     * Checks if the currently authenticated user's UID matches the provided ID.
+     * This is the foundation of the company ownership model.
+     * @param empresaId The company ID to check against the user's auth UID.
+     */
+    function isOwner(empresaId) {
+      return isSignedIn() && request.auth.uid == empresaId;
+    }
+
+    /**
+     * Checks for ownership on existing documents. Prevents writes to non-existent
+     * documents, which is crucial for update and delete operations.
+     * @param empresaId The company ID to check against the user's auth UID.
+     */
+    function isExistingOwner(empresaId) {
+      return isOwner(empresaId) && resource != null;
+    }
+
+    /**
+     * On CREATE: Validates that the denormalized `empresaId` field within the new
+     * document's data correctly matches the `empresaId` from the collection path.
+     * @param empresaId The company ID from the document path.
+     */
+    function hasValidEmpresaIdOnCreate(empresaId) {
+      return request.resource.data.empresaId == empresaId;
+    }
+
+    /**
+     * On UPDATE: Enforces that the `empresaId` field cannot be changed after creation,
+     * preventing documents from being moved between companies.
+     */
+    function isEmpresaIdImmutable() {
+      return request.resource.data.empresaId == resource.data.empresaId;
+    }
+
+    // =====================================================================
+    // Collection Rules
+    // =====================================================================
+
+    /**
+     * @description Manages company profile documents. A company can create its own
+     *              profile and has full control over it, but cannot see or list
+     *              other company profiles.
+     * @path        /empresas/{empresaId}
+     * @allow       (create) An authenticated user with UID 'acme-corp' creates their own
+     *              profile at `/empresas/acme-corp`.
+     * @allow       (get, update, delete) The owner 'acme-corp' modifies their own
+     *              document at `/empresas/acme-corp`.
+     * @deny        (get) User 'initech' tries to read `/empresas/acme-corp`.
+     * @deny        (list) Any user tries to get a list of all companies.
+     * @principle   Enforces self-creation and strict document ownership. Prevents data leakage
+     *              by disallowing collection listing.
+     */
+    match /empresas/{empresaId} {
+      allow get: if isOwner(empresaId);
+      allow list: if false;
+      allow create: if isOwner(empresaId);
+      allow update: if isExistingOwner(empresaId);
+      allow delete: if isExistingOwner(empresaId);
+
+      /**
+       * @description Manages the drivers belonging to a specific company.
+       * @path        /empresas/{empresaId}/motoristas/{motoristaId}
+       * @allow       (create) Owner 'acme-corp' creates a driver document within their
+       *              subcollection, ensuring the document data contains `empresaId: 'acme-corp'`.
+       * @allow       (get, list, update, delete) Owner 'acme-corp' manages their own drivers.
+       * @deny        (create) Owner 'initech' attempts to create a driver under
+       *              `/empresas/acme-corp/motoristas/...`.
+       * @deny        (create) Owner 'acme-corp' creates a driver with `empresaId: 'other-corp'`
+       *              in the document data.
+       * @principle   Restricts access to a company's own data tree and validates relational
+       *              integrity via the denormalized `empresaId`.
+       */
+      match /motoristas/{motoristaId} {
+        allow get: if isOwner(empresaId);
+        allow list: if isOwner(empresaId);
+        allow create: if isOwner(empresaId) && hasValidEmpresaIdOnCreate(empresaId);
+        allow update: if isExistingOwner(empresaId) && isEmpresaIdImmutable();
+        allow delete: if isExistingOwner(empresaId);
+      }
+
+      /**
+       * @description Manages the loads (cargas) belonging to a specific company.
+       * @path        /empresas/{empresaId}/cargas/{cargaId}
+       * @allow       (create) Owner 'acme-corp' creates a load document, ensuring the
+       *              document data contains `empresaId: 'acme-corp'`.
+       * @allow       (get, list, update, delete) Owner 'acme-corp' manages their own loads.
+       * @deny        (get) Owner 'initech' attempts to read a load from 'acme-corp'.
+       * @principle   Restricts access to a company's own data tree and validates relational
+       *              integrity via the denormalized `empresaId`.
+       */
+      match /cargas/{cargaId} {
+        allow get: if isOwner(empresaId);
+        allow list: if isOwner(empresaId);
+        allow create: if isOwner(empresaId) && hasValidEmpresaIdOnCreate(empresaId);
+        allow update: if isExistingOwner(empresaId) && isEmpresaIdImmutable();
+        allow delete: if isExistingOwner(empresaId);
+      }
+
+      /**
+       * @description Manages documents belonging to a specific company.
+       * @path        /empresas/{empresaId}/documentos/{documentoId}
+       * @allow       (create) Owner 'acme-corp' creates a document reference, ensuring the
+       *              document data contains `empresaId: 'acme-corp'`.
+       * @allow       (get, list, update, delete) Owner 'acme-corp' manages their own documents.
+       * @deny        (update) Owner 'acme-corp' tries to change the `empresaId` on an
+       *              existing document.
+       * @principle   Restricts access to a company's own data tree and validates relational
+       *              integrity via the denormalized `empresaId`.
+       */
+      match /documentos/{documentoId} {
+        allow get: if isOwner(empresaId);
+        allow list: if isOwner(empresaId);
+        allow create: if isOwner(empresaId) && hasValidEmpresaIdOnCreate(empresaId);
+        allow update: if isExistingOwner(empresaId) && isEmpresaIdImmutable();
+        allow delete: if isExistingOwner(empresaId);
+      }
+    }
+
+    /**
+     * @description Provides public, read-only access to subscription plan information.
+     *              This data is considered global and not owned by any single company.
+     * @path        /planos/{planoId}
+     * @allow       (get, list) Any user, authenticated or not, can read the available plans.
+     * @deny        (create, update, delete) No user can modify the plans through the client SDK.
+     *              This data must be managed through the Firebase Console or Admin SDK.
+     * @principle   Secures globally-shared data by making it read-only for all users,
+     *              preventing unauthorized modification.
+     */
+    match /planos/{planoId} {
+      allow get: if true;
+      allow list: if true;
+      allow create: if false;
+      allow update: if false;
+      allow delete: if false;
+    }
+  }
+}

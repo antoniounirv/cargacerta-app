@@ -1,0 +1,305 @@
+{
+  "entities": {
+    "Empresa": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Empresa",
+      "type": "object",
+      "description": "Represents a company registered in the system.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the Empresa entity."
+        },
+        "razaoSocial": {
+          "type": "string",
+          "description": "The official registered name of the company."
+        },
+        "cnpj": {
+          "type": "string",
+          "description": "The company's CNPJ (Brazilian business registration number)."
+        },
+        "email": {
+          "type": "string",
+          "description": "The company's email address.",
+          "format": "email"
+        },
+        "senhaHash": {
+          "type": "string",
+          "description": "A securely hashed password for the company's account. (DO NOT STORE PLAINTEXT PASSWORDS)"
+        },
+        "planoId": {
+          "type": "string",
+          "description": "Reference to Plano. (Relationship: Empresa 1:1 Plano)"
+        },
+        "dataCadastro": {
+          "type": "string",
+          "description": "The date and time when the company registered.",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "id",
+        "razaoSocial",
+        "cnpj",
+        "email",
+        "senhaHash",
+        "planoId",
+        "dataCadastro"
+      ]
+    },
+    "Plano": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Plano",
+      "type": "object",
+      "description": "Represents a subscription plan offered to companies.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the Plano entity."
+        },
+        "nome": {
+          "type": "string",
+          "description": "The name of the subscription plan (e.g., Starter, Pro, Enterprise)."
+        },
+        "preco": {
+          "type": "number",
+          "description": "The price of the subscription plan."
+        },
+        "limiteMotoristas": {
+          "type": "number",
+          "description": "The maximum number of drivers allowed under this plan."
+        },
+        "limiteCargas": {
+          "type": "number",
+          "description": "The maximum number of loads allowed under this plan."
+        },
+        "descricao": {
+          "type": "string",
+          "description": "A description of the features included in the plan."
+        }
+      },
+      "required": [
+        "id",
+        "nome",
+        "preco",
+        "limiteMotoristas",
+        "limiteCargas",
+        "descricao"
+      ]
+    },
+    "Motorista": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Motorista",
+      "type": "object",
+      "description": "Represents a driver associated with a company.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the Motorista entity."
+        },
+        "nome": {
+          "type": "string",
+          "description": "The driver's name."
+        },
+        "cpf": {
+          "type": "string",
+          "description": "The driver's CPF (Brazilian individual tax registration number)."
+        },
+        "telefone": {
+          "type": "string",
+          "description": "The driver's phone number."
+        },
+        "empresaId": {
+          "type": "string",
+          "description": "Reference to Empresa. (Relationship: Empresa 1:N Motorista)"
+        }
+      },
+      "required": [
+        "id",
+        "nome",
+        "cpf",
+        "telefone",
+        "empresaId"
+      ]
+    },
+    "Carga": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Carga",
+      "type": "object",
+      "description": "Represents a load or shipment being tracked by a company.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the Carga entity."
+        },
+        "origem": {
+          "type": "string",
+          "description": "The origin location of the load."
+        },
+        "destino": {
+          "type": "string",
+          "description": "The destination location of the load."
+        },
+        "status": {
+          "type": "string",
+          "description": "The current status of the load (e.g., In Transit, Delivered)."
+        },
+        "motoristaId": {
+          "type": "string",
+          "description": "Reference to Motorista. (Relationship: Motorista 1:N Carga)"
+        },
+        "empresaId": {
+          "type": "string",
+          "description": "Reference to Empresa. (Relationship: Empresa 1:N Carga)"
+        }
+      },
+      "required": [
+        "id",
+        "origem",
+        "destino",
+        "status",
+        "motoristaId",
+        "empresaId"
+      ]
+    },
+    "Documento": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Documento",
+      "type": "object",
+      "description": "Represents a document associated with a driver and company.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the Documento entity."
+        },
+        "nomeArquivo": {
+          "type": "string",
+          "description": "The original file name of the document."
+        },
+        "url": {
+          "type": "string",
+          "description": "The URL where the document is stored (e.g., in Firebase Storage).",
+          "format": "uri"
+        },
+        "motoristaId": {
+          "type": "string",
+          "description": "Reference to Motorista. (Relationship: Motorista 1:N Documento)"
+        },
+        "empresaId": {
+          "type": "string",
+          "description": "Reference to Empresa. (Relationship: Empresa 1:N Documento)"
+        }
+      },
+      "required": [
+        "id",
+        "nomeArquivo",
+        "url",
+        "motoristaId",
+        "empresaId"
+      ]
+    }
+  },
+  "auth": {
+    "providers": [
+      "password",
+      "anonymous"
+    ]
+  },
+  "firestore": {
+    "structure": [
+      {
+        "path": "empresas/{empresaId}",
+        "definition": {
+          "entityName": "Empresa",
+          "schema": {
+            "$ref": "#/backend/entities/Empresa"
+          },
+          "description": "Stores company registration information. The empresaId serves as the document ID.",
+          "params": [
+            {
+              "name": "empresaId",
+              "description": "The unique identifier for the company."
+            }
+          ]
+        }
+      },
+      {
+        "path": "planos/{planoId}",
+        "definition": {
+          "entityName": "Plano",
+          "schema": {
+            "$ref": "#/backend/entities/Plano"
+          },
+          "description": "Stores subscription plan details. The planoId serves as the document ID.",
+          "params": [
+            {
+              "name": "planoId",
+              "description": "The unique identifier for the subscription plan."
+            }
+          ]
+        }
+      },
+      {
+        "path": "empresas/{empresaId}/motoristas/{motoristaId}",
+        "definition": {
+          "entityName": "Motorista",
+          "schema": {
+            "$ref": "#/backend/entities/Motorista"
+          },
+          "description": "Stores driver information for a specific company. Includes denormalized 'empresaId' for authorization independence.",
+          "params": [
+            {
+              "name": "empresaId",
+              "description": "The unique identifier for the company."
+            },
+            {
+              "name": "motoristaId",
+              "description": "The unique identifier for the driver."
+            }
+          ]
+        }
+      },
+      {
+        "path": "empresas/{empresaId}/cargas/{cargaId}",
+        "definition": {
+          "entityName": "Carga",
+          "schema": {
+            "$ref": "#/backend/entities/Carga"
+          },
+          "description": "Stores load information for a specific company. Includes denormalized 'empresaId' for authorization independence.",
+          "params": [
+            {
+              "name": "empresaId",
+              "description": "The unique identifier for the company."
+            },
+            {
+              "name": "cargaId",
+              "description": "The unique identifier for the load."
+            }
+          ]
+        }
+      },
+      {
+        "path": "empresas/{empresaId}/documentos/{documentoId}",
+        "definition": {
+          "entityName": "Documento",
+          "schema": {
+            "$ref": "#/backend/entities/Documento"
+          },
+          "description": "Stores documents associated with drivers and companies. Includes denormalized 'empresaId' and 'motoristaId' for authorization independence.",
+          "params": [
+            {
+              "name": "empresaId",
+              "description": "The unique identifier for the company."
+            },
+            {
+              "name": "documentoId",
+              "description": "The unique identifier for the document."
+            }
+          ]
+        }
+      }
+    ],
+    "reasoning": "This Firestore structure is designed to support a multi-tenant application where data is isolated by company. The core principle is to enforce authorization independence and simplify security rules by denormalizing the `empresaId` into all collections that are associated with a company. This removes the need for complex `get()` operations in security rules. The structure also supports efficient querying and list operations (QAPs) by ensuring that all documents within a collection share the same security requirements.\n\n1.  **Companies (Empresas)**: The `empresas` collection stores company registration information. Authentication will be handled via Firebase Authentication, and the `empresaId` can be used as a foreign key.\n\n2.  **Plans (Planos)**: The `planos` collection holds the details of the subscription plans. These are globally accessible and do not belong to a specific company.\n\n3.  **Drivers (Motoristas)**: The `empresas/{empresaId}/motoristas` subcollection stores driver information specific to each company. The `empresaId` is denormalized into each document, ensuring authorization independence.\n\n4.  **Loads (Cargas)**: The `empresas/{empresaId}/cargas` subcollection stores load information specific to each company. The `empresaId` is denormalized into each document to enforce data isolation and authorization independence.\n\n5.  **Documents (Documentos)**: The `empresas/{empresaId}/documentos` subcollection stores documents associated with drivers and companies. The `empresaId` and `motoristaId` are denormalized into each document to ensure data isolation and authorization independence.\n\nThis structure directly addresses the requirement for multi-tenancy by isolating data based on the `empresaId`. By denormalizing the `empresaId`, security rules can be written to ensure that only authenticated users from a specific company can access the data within their respective subcollections, simplifying the rules and enhancing security. This approach achieves Authorization Independence, supporting atomic operations and simplifying debugging. Segregation ensures that each collection has a homogeneous security posture, which supports QAPs by preventing the need to filter data based on authorization rules."
+  }
+}

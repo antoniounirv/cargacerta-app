@@ -1,0 +1,40 @@
+{
+  "placeholderImages": [
+    {
+      "id": "hero-image",
+      "description": "A modern truck on a highway at sunset, representing logistics and transport.",
+      "imageUrl": "https://images.unsplash.com/photo-1561471828-938a187af73c?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw1fHx0cnVjayUyMGhpZ2h3YXl8ZW58MHx8fHwxNzY0MjQyMjg2fDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "truck highway"
+    },
+    {
+      "id": "drivers",
+      "description": "A group of professional truck drivers standing together.",
+      "imageUrl": "https://images.unsplash.com/photo-1635211931780-ed25b761412d?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxMHx8dHJ1Y2slMjBkcml2ZXJzfGVufDB8fHx8MTc2NDI4MzAzM3ww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "truck drivers"
+    },
+    {
+      "id": "loads",
+      "description": "A warehouse with many packages and pallets ready for shipping.",
+      "imageUrl": "https://images.unsplash.com/photo-1644308992821-6feb6375c89b?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw3fHx3YXJlaG91c2UlMjBwYWNrYWdlc3xlbnwwfHx8fDE3NjQyODMwMzN8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "warehouse packages"
+    },
+    {
+      "id": "billing",
+      "description": "A person using a credit card on a laptop.",
+      "imageUrl": "https://images.unsplash.com/photo-1587906697341-bfbde76785c7?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw0fHxvbmxpbmUlMjBwYXltZW50fGVufDB8fHx8MTc2NDIzNTM1OXww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "online payment"
+    },
+    {
+      "id": "avatar1",
+      "description": "Avatar of a person.",
+      "imageUrl": "https://images.unsplash.com/photo-1594616838951-c155f8d978a0?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw1fHxwZXJzb24lMjBhdmF0YXJ8ZW58MHx8fHwxNzY0MjI1NDgwfDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "person avatar"
+    },
+    {
+      "id": "avatar2",
+      "description": "Avatar of another person.",
+      "imageUrl": "https://images.unsplash.com/photo-1639149888905-fb39731f2e6c?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwyfHxwZXJzb24lMjBhdmF0YXJ8ZW58MHx8fHwxNzY0MjI1NDgwfDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "person avatar"
+    }
+  ]
+}
