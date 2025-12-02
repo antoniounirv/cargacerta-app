@@ -5,6 +5,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { useState } from "react";
+import { FirebaseError } from "firebase/app";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -18,7 +19,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Loader2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { useFirebase, initiateEmailSignIn } from "@/firebase";
+import { useFirebase, signInWithEmail } from "@/firebase";
 
 const formSchema = z.object({
   email: z.string().email({ message: "Por favor, insira um e-mail válido." }),
@@ -40,12 +41,41 @@ export function SignInForm() {
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
     setIsLoading(true);
-    initiateEmailSignIn(auth, values.email, values.password);
-    toast({
-      title: "Login em andamento...",
-      description: "Aguarde enquanto verificamos suas credenciais.",
-    });
-    // O redirecionamento será tratado pelo FirebaseProvider
+    
+    try {
+      await signInWithEmail(auth, values.email, values.password);
+      // O sucesso é tratado pelo onAuthStateChanged no provider, que redireciona.
+      // Não precisamos fazer nada aqui.
+    } catch (error) {
+      let title = "Erro no Login";
+      let description = "Ocorreu um erro inesperado. Tente novamente.";
+
+      if (error instanceof FirebaseError) {
+        switch (error.code) {
+          case 'auth/user-not-found':
+          case 'auth/wrong-password':
+          case 'auth/invalid-credential':
+            title = "Credenciais Inválidas";
+            description = "O e-mail ou a senha inseridos estão incorretos.";
+            break;
+          case 'auth/invalid-email':
+            title = "E-mail Inválido";
+            description = "O formato do e-mail inserido não é válido.";
+            break;
+          default:
+             // Mantém a mensagem genérica para outros erros de firebase
+            break;
+        }
+      }
+      
+      toast({
+        variant: "destructive",
+        title: title,
+        description: description,
+      });
+      setIsLoading(false);
+    }
+    // Não definimos setIsLoading(false) no sucesso, pois a página será redirecionada.
   }
 
   return (
