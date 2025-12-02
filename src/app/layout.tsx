@@ -3,6 +3,7 @@ import './globals.css';
 import { Toaster } from "@/components/ui/toaster";
 import { FirebaseClientProvider } from '@/firebase';
 import { Inter, Poppins } from 'next/font/google';
+import { SpeedInsights } from "@vercel/speed-insights/next";
 
 export const metadata: Metadata = {
   title: 'CargaCerta',
@@ -16,7 +17,6 @@ const poppins = Poppins({
   variable: '--font-poppins' 
 });
 
-
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -28,8 +28,13 @@ export default function RootLayout({
         <FirebaseClientProvider>
           {children}
         </FirebaseClientProvider>
+
         <Toaster />
+
+        {/* Speed Insights */}
+        <SpeedInsights />
       </body>
     </html>
   );
 }
+git add .
