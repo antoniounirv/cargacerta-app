@@ -35,9 +35,11 @@ export function CityAutocomplete({ value, onValueChange, placeholder }: CityAuto
   const [isLoading, setIsLoading] = React.useState(false);
 
   React.useEffect(() => {
-    // Only search if the input value has changed and is not empty.
-    // The popover needs to be open to show suggestions.
-    if (debouncedSearch && open) {
+    // FIX: Removed `&& open` condition.
+    // The search should be triggered whenever the debounced search term changes,
+    // regardless of whether the popover is open or not.
+    // This ensures suggestions are fetched and ready to be displayed when the user clicks the trigger.
+    if (debouncedSearch) {
       setIsLoading(true);
       getCitySuggestions(debouncedSearch).then(result => {
         setSuggestions(result.suggestions || []);
@@ -46,10 +48,10 @@ export function CityAutocomplete({ value, onValueChange, placeholder }: CityAuto
         setIsLoading(false);
         setSuggestions([]);
       });
-    } else if (!debouncedSearch) {
+    } else {
       setSuggestions([]);
     }
-  }, [debouncedSearch, open]);
+  }, [debouncedSearch]);
 
   const handleSelect = (currentValue: string) => {
     const newValue = currentValue === value ? "" : currentValue;
