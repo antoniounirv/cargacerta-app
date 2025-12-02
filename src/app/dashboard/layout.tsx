@@ -49,13 +49,13 @@ function DashboardProvider({ children }: { children: ReactNode }) {
     const { data: company, isLoading: isCompanyLoading } = useDoc<Company>(companyRef);
 
     const driversCollectionRef = useMemoFirebase(() => {
-        if (!user) return null;
+        if (!firestore || !user) return null;
         return collection(firestore, 'empresas', user.uid, 'motoristas');
     }, [firestore, user]);
     const { data: drivers, isLoading: areDriversLoading } = useCollection<Driver>(driversCollectionRef);
 
     const loadsCollectionRef = useMemoFirebase(() => {
-        if (!user) return null;
+        if (!firestore || !user) return null;
         return collection(firestore, 'empresas', user.uid, 'cargas');
     }, [firestore, user]);
     const { data: loads, isLoading: areLoadsLoading } = useCollection<Load>(loadsCollectionRef);
