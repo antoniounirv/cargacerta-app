@@ -30,16 +30,21 @@ interface CityAutocompleteProps {
 export function CityAutocomplete({ value, onValueChange, placeholder }: CityAutocompleteProps) {
   const [open, setOpen] = React.useState(false)
   const [search, setSearch] = React.useState("")
-  const [debouncedSearch] = useDebounce(search, 500);
+  const [debouncedSearch] = useDebounce(search, 1000); // Increased debounce time
   const [suggestions, setSuggestions] = React.useState<string[]>([]);
   const [isLoading, setIsLoading] = React.useState(false);
 
   React.useEffect(() => {
-    if (debouncedSearch) {
+    // Only search if the query is long enough
+    if (debouncedSearch && debouncedSearch.length > 2) {
       setIsLoading(true);
       getCitySuggestions(debouncedSearch).then(result => {
         setSuggestions(result.suggestions);
         setIsLoading(false);
+      }).catch(() => {
+        // In case of API error, stop loading and clear suggestions
+        setIsLoading(false);
+        setSuggestions([]);
       });
     } else {
       setSuggestions([]);
