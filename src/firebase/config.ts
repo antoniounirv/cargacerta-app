@@ -1,4 +1,4 @@
-// Populate the firebaseConfig object from environment variables for client-side usage
+// Popula o firebaseConfig a partir das variáveis de ambiente para uso no cliente
 export const firebaseConfig = {
   apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY || "",
   authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN || "",
