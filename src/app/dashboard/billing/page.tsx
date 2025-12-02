@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState } from "react";
@@ -18,16 +19,25 @@ import { cn } from "@/lib/utils";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { UserNav } from "@/components/dashboard/user-nav";
 import { BackButton } from "@/components/dashboard/back-button";
+import { useToast } from "@/hooks/use-toast";
 
 
 export default function BillingPage() {
     const [isYearly, setIsYearly] = useState(false);
+    const { toast } = useToast();
     const currentPlanId = company.plan_id;
 
     const planFeatures = {
         plan_starter: ['Até 5 motoristas', 'Até 50 cargas/mês', 'Suporte via e-mail'],
         plan_pro: ['Até 20 motoristas', 'Até 200 cargas/mês', 'Relatórios Avançados', 'Suporte prioritário'],
         plan_enterprise: ['Motoristas ilimitados', 'Cargas ilimitadas', 'Suporte Premium 24/7', 'Gerente de conta dedicado']
+    }
+
+    const handleChoosePlan = (planName: string) => {
+        toast({
+            title: "Iniciando Checkout...",
+            description: `Você selecionou o plano ${planName}. Aqui começaria a integração com um provedor de pagamento como Mercado Pago ou Stripe.`,
+        })
     }
 
   return (
@@ -79,7 +89,11 @@ export default function BillingPage() {
                             </ul>
                         </CardContent>
                         <CardFooter>
-                            <Button className="w-full" disabled={isCurrentPlan}>
+                            <Button 
+                                className="w-full" 
+                                disabled={isCurrentPlan}
+                                onClick={() => !isCurrentPlan && handleChoosePlan(plan.nome)}
+                            >
                                 {isCurrentPlan ? "Plano Atual" : "Escolher Plano"}
                             </Button>
                         </CardFooter>
