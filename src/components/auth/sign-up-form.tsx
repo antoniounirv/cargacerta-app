@@ -8,6 +8,7 @@ import { useState } from "react";
 import { useFirebase, setDocumentNonBlocking, initiateEmailSignUp } from "@/firebase";
 import { doc } from "firebase/firestore";
 import { validateCnpj } from "@/lib/validators";
+import { FirebaseError } from "firebase/app";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -54,9 +55,9 @@ export function SignUpForm() {
   async function onSubmit(values: z.infer<typeof formSchema>) {
     setIsLoading(true);
     
-    // Non-blocking sign-up and data persistence
-    initiateEmailSignUp(auth, values.email, values.password)
-      .then(userCredential => {
+    try {
+        const userCredential = await initiateEmailSignUp(auth, values.email, values.password);
+
         if (userCredential?.user) {
           const user = userCredential.user;
           const empresaData = {
@@ -70,27 +71,31 @@ export function SignUpForm() {
           
           const empresaRef = doc(firestore, "empresas", user.uid);
           setDocumentNonBlocking(empresaRef, empresaData, { merge: true });
+
+           toast({
+            title: "Cadastro realizado com sucesso!",
+            description: "Bem-vindo! Redirecionando para o seu painel.",
+           });
+           // O redirecionamento é tratado pelo listener de autenticação
         }
-      })
-      .catch(error => {
-        // This catch is for immediate errors, e.g. network issues.
-        // Auth errors like 'email-already-in-use' are handled by the auth state listener.
-        console.error("Sign-up initiation error:", error);
+    } catch (error) {
+        let title = "Erro no cadastro";
+        let description = "Não foi possível realizar o cadastro. Tente novamente.";
+        
+        if (error instanceof FirebaseError) {
+            if (error.code === 'auth/email-already-in-use') {
+                title = "E-mail já cadastrado";
+                description = "Este e-mail já está em uso. Por favor, faça login ou use um e-mail diferente.";
+            }
+        }
+        
          toast({
           variant: "destructive",
-          title: "Erro no cadastro",
-          description: "Não foi possível iniciar o processo de cadastro. Verifique sua conexão.",
+          title: title,
+          description: description,
         });
         setIsLoading(false);
-      });
-
-    // Optimistic UI update
-    toast({
-      title: "Cadastro realizado com sucesso!",
-      description: "Bem-vindo! Redirecionando para o seu painel.",
-    });
-
-    // O redirecionamento será tratado pelo FirebaseProvider
+    }
   }
 
   return (
