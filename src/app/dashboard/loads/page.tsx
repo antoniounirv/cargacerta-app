@@ -40,7 +40,6 @@ import { SidebarTrigger } from "@/components/ui/sidebar";
 import { UserNav } from "@/components/dashboard/user-nav";
 import { useUser, useFirebase, addDocumentNonBlocking, updateDocumentNonBlocking, deleteDocumentNonBlocking, useMemoFirebase } from "@/firebase";
 import { collection, doc } from "firebase/firestore";
-import { CityAutocomplete } from "@/components/city-autocomplete";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/hooks/use-toast";
 import { useDashboard } from "../layout";
@@ -100,8 +99,8 @@ export default function LoadsPage() {
 
     const formData = new FormData(e.currentTarget);
     const loadData: Partial<Load> = {
-        origem: origin,
-        destino: destination,
+        origem: formData.get('origin') as string,
+        destino: formData.get('destination') as string,
         motoristaId: formData.get('driver') as string,
         status: formData.get('status') as LoadStatus,
         data_saida: formData.get('departure_date') as string,
@@ -245,18 +244,20 @@ export default function LoadsPage() {
               <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
                       <Label htmlFor="origin">Origem</Label>
-                      <CityAutocomplete
-                          value={origin}
-                          onValueChange={setOrigin}
-                          placeholder="Digite a cidade de origem"
+                      <Input 
+                        id="origin"
+                        name="origin"
+                        placeholder="Digite a cidade de origem"
+                        defaultValue={selectedLoad?.origem}
                       />
                   </div>
                   <div className="space-y-2">
                       <Label htmlFor="destination">Destino</Label>
-                       <CityAutocomplete
-                          value={destination}
-                          onValueChange={setDestination}
+                       <Input
+                          id="destination"
+                          name="destination"
                           placeholder="Digite a cidade de destino"
+                          defaultValue={selectedLoad?.destino}
                       />
                   </div>
               </div>
