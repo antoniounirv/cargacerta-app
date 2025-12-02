@@ -36,6 +36,12 @@ function DashboardProvider({ children }: { children: ReactNode }) {
     const { firestore } = useFirebase();
     const router = useRouter();
 
+    useEffect(() => {
+        if (!isAuthLoading && !user) {
+            router.push('/sign-in');
+        }
+    }, [isAuthLoading, user, router]);
+
     const companyRef = useMemoFirebase(() => {
         if (!firestore || !user) return null;
         return doc(firestore, "empresas", user.uid);
@@ -55,12 +61,6 @@ function DashboardProvider({ children }: { children: ReactNode }) {
     const { data: loads, isLoading: areLoadsLoading } = useCollection<Load>(loadsCollectionRef);
 
     const isLoading = isAuthLoading || isCompanyLoading || areDriversLoading || areLoadsLoading;
-
-     useEffect(() => {
-        if (!isAuthLoading && !user) {
-            router.push('/sign-in');
-        }
-    }, [isAuthLoading, user, router]);
 
     if (isAuthLoading || !user) {
         return (
