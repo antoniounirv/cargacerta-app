@@ -44,7 +44,7 @@ const citySuggestionsFlow = ai.defineFlow(
     outputSchema: CitySuggestionsOutputSchema,
   },
   async input => {
-    if (!input.query || input.query.length < 3) {
+    if (!input.query) {
       return { suggestions: [] };
     }
     const {output} = await prompt(input);

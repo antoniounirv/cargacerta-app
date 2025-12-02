@@ -30,12 +30,12 @@ interface CityAutocompleteProps {
 export function CityAutocomplete({ value, onValueChange, placeholder }: CityAutocompleteProps) {
   const [open, setOpen] = React.useState(false)
   const [search, setSearch] = React.useState("")
-  const [debouncedSearch] = useDebounce(search, 1500);
+  const [debouncedSearch] = useDebounce(search, 1000);
   const [suggestions, setSuggestions] = React.useState<string[]>([]);
   const [isLoading, setIsLoading] = React.useState(false);
 
   React.useEffect(() => {
-    if (debouncedSearch && debouncedSearch.length > 2) {
+    if (debouncedSearch) {
       setIsLoading(true);
       getCitySuggestions(debouncedSearch).then(result => {
         setSuggestions(result.suggestions);
@@ -90,7 +90,7 @@ export function CityAutocomplete({ value, onValueChange, placeholder }: CityAuto
           />
           <CommandList>
             {isLoading && <div className="p-4 flex items-center justify-center"><Loader2 className="h-6 w-6 animate-spin" /></div>}
-            {!isLoading && !suggestions.length && search.length > 2 && <CommandEmpty>Nenhuma cidade encontrada.</CommandEmpty>}
+            {!isLoading && !suggestions.length && search && <CommandEmpty>Nenhuma cidade encontrada.</CommandEmpty>}
             {!isLoading && (
                  <CommandGroup>
                     {suggestions.map((suggestion) => (
