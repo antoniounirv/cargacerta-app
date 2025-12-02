@@ -17,6 +17,7 @@ import { plans, company } from "@/lib/placeholder-data";
 import { cn } from "@/lib/utils";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { UserNav } from "@/components/dashboard/user-nav";
+import { BackButton } from "@/components/dashboard/back-button";
 
 
 export default function BillingPage() {
@@ -32,8 +33,9 @@ export default function BillingPage() {
   return (
      <div className="flex-1 space-y-4 p-4 md:p-8 pt-6">
         <header className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-4">
                 <SidebarTrigger className="md:hidden" />
+                <BackButton />
                  <div className="space-y-1">
                     <h2 className="text-3xl font-bold tracking-tight font-headline">Planos e Cobrança</h2>
                     <p className="text-muted-foreground">Gerencie sua assinatura e veja os detalhes do seu plano.</p>

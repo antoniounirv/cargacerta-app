@@ -45,6 +45,7 @@ import { useToast } from "@/hooks/use-toast";
 import { validateCpf } from "@/lib/validators";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useDashboard } from "../layout";
+import { BackButton } from "@/components/dashboard/back-button";
 
 export default function DriversPage() {
   const [isDialogOpen, setDialogOpen] = useState(false);
@@ -128,8 +129,9 @@ export default function DriversPage() {
   return (
     <div className="flex-1 space-y-4 p-4 md:p-8 pt-6">
       <header className="flex items-center justify-between">
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-4">
           <SidebarTrigger className="md:hidden" />
+          <BackButton />
           <div className="space-y-1">
             <h2 className="text-3xl font-bold tracking-tight font-headline">Motoristas</h2>
             <p className="text-muted-foreground">Gerencie os motoristas da sua empresa.</p>

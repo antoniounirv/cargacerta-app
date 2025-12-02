@@ -44,6 +44,7 @@ import { CityAutocomplete } from "@/components/city-autocomplete";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/hooks/use-toast";
 import { useDashboard } from "../layout";
+import { BackButton } from "@/components/dashboard/back-button";
 
 export default function LoadsPage() {
   const [isDialogOpen, setDialogOpen] = useState(false);
@@ -144,8 +145,9 @@ export default function LoadsPage() {
   return (
     <div className="flex-1 space-y-4 p-4 md:p-8 pt-6">
       <header className="flex items-center justify-between">
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-4">
           <SidebarTrigger className="md:hidden" />
+          <BackButton />
           <div className="space-y-1">
               <h2 className="text-3xl font-bold tracking-tight font-headline">Cargas</h2>
               <p className="text-muted-foreground">Monitore e gerencie as cargas da sua frota.</p>
