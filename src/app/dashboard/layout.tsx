@@ -3,11 +3,13 @@
 import type { ReactNode } from 'react';
 import { SidebarProvider, SidebarInset } from '@/components/ui/sidebar';
 import { MainNav } from '@/components/dashboard/main-nav';
-import { createContext, useContext } from 'react';
+import { createContext, useContext, useEffect } from 'react';
 import { useUser, useDoc, useCollection, useMemoFirebase } from '@/firebase';
 import { doc, collection } from 'firebase/firestore';
 import { useFirebase } from '@/firebase/provider';
 import type { Company, Driver, Load } from '@/lib/definitions';
+import { useRouter } from 'next/navigation';
+import { Loader2 } from 'lucide-react';
 
 // 1. Create a context to hold dashboard data
 interface DashboardContextType {
@@ -32,6 +34,7 @@ export const useDashboard = () => {
 function DashboardProvider({ children }: { children: ReactNode }) {
     const { user, isUserLoading: isAuthLoading } = useUser();
     const { firestore } = useFirebase();
+    const router = useRouter();
 
     const companyRef = useMemoFirebase(() => {
         if (!firestore || !user) return null;
@@ -52,6 +55,20 @@ function DashboardProvider({ children }: { children: ReactNode }) {
     const { data: loads, isLoading: areLoadsLoading } = useCollection<Load>(loadsCollectionRef);
 
     const isLoading = isAuthLoading || isCompanyLoading || areDriversLoading || areLoadsLoading;
+
+     useEffect(() => {
+        if (!isAuthLoading && !user) {
+            router.push('/sign-in');
+        }
+    }, [isAuthLoading, user, router]);
+
+    if (isAuthLoading || !user) {
+        return (
+            <div className="flex h-screen w-full items-center justify-center bg-background">
+                <Loader2 className="h-8 w-8 animate-spin text-primary" />
+            </div>
+        )
+    }
 
     const value = {
         company,
