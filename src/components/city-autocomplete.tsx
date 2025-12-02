@@ -30,19 +30,17 @@ interface CityAutocompleteProps {
 export function CityAutocomplete({ value, onValueChange, placeholder }: CityAutocompleteProps) {
   const [open, setOpen] = React.useState(false)
   const [search, setSearch] = React.useState("")
-  const [debouncedSearch] = useDebounce(search, 1000); // Increased debounce time
+  const [debouncedSearch] = useDebounce(search, 1000);
   const [suggestions, setSuggestions] = React.useState<string[]>([]);
   const [isLoading, setIsLoading] = React.useState(false);
 
   React.useEffect(() => {
-    // Only search if the query is long enough
     if (debouncedSearch && debouncedSearch.length > 2) {
       setIsLoading(true);
       getCitySuggestions(debouncedSearch).then(result => {
         setSuggestions(result.suggestions);
         setIsLoading(false);
       }).catch(() => {
-        // In case of API error, stop loading and clear suggestions
         setIsLoading(false);
         setSuggestions([]);
       });
@@ -51,16 +49,23 @@ export function CityAutocomplete({ value, onValueChange, placeholder }: CityAuto
     }
   }, [debouncedSearch]);
   
+  // When the external value changes, update the internal search state.
   React.useEffect(() => {
-    if (value) {
-        setSearch(value);
-    }
+    setSearch(value);
   }, [value]);
 
   const handleSelect = (currentValue: string) => {
-    onValueChange(currentValue === value ? "" : currentValue);
-    setSearch(currentValue === value ? "" : currentValue)
+    const newValue = currentValue === value ? "" : currentValue;
+    onValueChange(newValue);
+    setSearch(newValue); 
     setOpen(false);
+  }
+
+  const handleSearchChange = (newSearch: string) => {
+    setSearch(newSearch);
+    if (!newSearch) {
+      onValueChange(""); // Clear external state if input is cleared
+    }
   }
 
   return (
@@ -70,9 +75,9 @@ export function CityAutocomplete({ value, onValueChange, placeholder }: CityAuto
           variant="outline"
           role="combobox"
           aria-expanded={open}
-          className="w-full justify-between"
+          className="w-full justify-between font-normal"
         >
-          {value || placeholder || "Selecione uma cidade..."}
+          <span className="truncate">{value || placeholder || "Selecione uma cidade..."}</span>
           <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
         </Button>
       </PopoverTrigger>
@@ -81,11 +86,11 @@ export function CityAutocomplete({ value, onValueChange, placeholder }: CityAuto
           <CommandInput 
             placeholder={placeholder || "Buscar cidade..."} 
             value={search} 
-            onValueChange={setSearch}
+            onValueChange={handleSearchChange}
           />
           <CommandList>
             {isLoading && <div className="p-4 flex items-center justify-center"><Loader2 className="h-6 w-6 animate-spin" /></div>}
-            {!isLoading && <CommandEmpty>Nenhuma cidade encontrada.</CommandEmpty>}
+            {!isLoading && !suggestions.length && search.length > 2 && <CommandEmpty>Nenhuma cidade encontrada.</CommandEmpty>}
             {!isLoading && (
                  <CommandGroup>
                     {suggestions.map((suggestion) => (
