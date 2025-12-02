@@ -19,6 +19,7 @@ import {
   Users,
   CreditCard,
   LogOut,
+  FileText,
 } from "lucide-react";
 import { UserNav } from "./user-nav";
 import { useFirebase } from "@/firebase";
@@ -39,6 +40,11 @@ const menuItems = [
     href: "/dashboard/loads",
     label: "Cargas",
     icon: Truck,
+  },
+  {
+    href: "/dashboard/documents",
+    label: "Documentos",
+    icon: FileText,
   },
   {
     href: "/dashboard/billing",
