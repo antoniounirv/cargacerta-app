@@ -3,7 +3,7 @@ import { MercadoPagoConfig, Payment } from "mercadopago";
 
 // Inicializa o Mercado Pago com sua CHAVE SECRETA (Access Token)
 const client = new MercadoPagoConfig({
-  accessToken: process.env.MERCADO_PAGO_ACCESS_TOKEN!, // vem do .env.local
+  accessToken: process.env.MERCADO_PAGO_ACCESS_TOKEN!,
 });
 
 const payment = new Payment(client);
@@ -15,23 +15,24 @@ export async function POST(request: Request) {
 
     console.log("🔹 Dados recebidos do frontend:", data);
 
-    // Criação do pagamento usando o SDK oficial do Mercado Pago
-    // Nota: O 'token' aqui é o card token gerado pelo Brick no frontend.
-    const response = await payment.create({
-      body: {
-        transaction_amount: Number(data.transaction_amount),
-        token: data.token,
-        description: data.description ?? "Pagamento CargaCerta",
-        installments: data.installments,
-        payment_method_id: data.payment_method_id,
-        issuer_id: data.issuer_id,
-        payer: {
-          email: data.payer.email,
-          first_name: data.payer.first_name,
-          last_name: data.payer.last_name,
-        },
+    const body = {
+      transaction_amount: Number(data.transaction_amount),
+      token: data.token,
+      description: data.description ?? "Pagamento CargaCerta",
+      installments: data.installments,
+      payment_method_id: data.payment_method_id,
+      issuer_id: data.issuer_id,
+      payer: {
+        email: data.payer.email,
+        first_name: data.payer.first_name,
+        last_name: data.payer.last_name,
       },
-    });
+      // Adiciona a URL para receber notificações de pagamento (Webhooks)
+      notification_url: `${process.env.NEXT_PUBLIC_SITE_URL}/api/webhooks/mercadopago`,
+    };
+
+    // Criação do pagamento usando o SDK oficial do Mercado Pago
+    const response = await payment.create({ body });
 
     console.log("🔹 Resposta Mercado Pago:", response);
 
@@ -40,7 +41,19 @@ export async function POST(request: Request) {
       status: response.status,
       status_detail: response.status_detail,
       id: response.id,
+      payment_method_id: response.payment_method_id,
+      // Se for boleto, retorna os dados para exibir
+      ...(response.payment_method_id === 'bolbradesco' && {
+        boleto_url: response.transaction_details?.external_resource_url,
+        boleto_barcode: response.barcode?.content,
+      }),
+      // Se for PIX, retorna os dados para exibir
+      ...(response.payment_method_id === 'pix' && {
+         qr_code_base64: response.point_of_interaction?.transaction_data?.qr_code_base64,
+         qr_code: response.point_of_interaction?.transaction_data?.qr_code,
+      }),
     });
+
   } catch (err: any) {
     console.error("❌ Erro ao processar pagamento:", err);
 
