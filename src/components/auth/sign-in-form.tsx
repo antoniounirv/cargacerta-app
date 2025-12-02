@@ -4,7 +4,6 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
-import { useRouter } from "next/navigation";
 import { useState } from "react";
 
 import { Button } from "@/components/ui/button";
@@ -27,7 +26,6 @@ const formSchema = z.object({
 });
 
 export function SignInForm() {
-  const router = useRouter();
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
   const { auth } = useFirebase();
@@ -45,9 +43,9 @@ export function SignInForm() {
     initiateEmailSignIn(auth, values.email, values.password);
     toast({
       title: "Login em andamento...",
-      description: "Redirecionando para o seu painel.",
+      description: "Aguarde enquanto verificamos suas credenciais.",
     });
-    router.push("/dashboard");
+    // O redirecionamento será tratado pelo FirebaseProvider
   }
 
   return (

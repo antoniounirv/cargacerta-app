@@ -6,6 +6,7 @@ import { FirebaseApp } from 'firebase/app';
 import { Firestore } from 'firebase/firestore';
 import { Auth, User, onAuthStateChanged } from 'firebase/auth';
 import { FirebaseErrorListener } from '@/components/FirebaseErrorListener'
+import { useRouter, usePathname } from 'next/navigation';
 
 interface FirebaseProviderProps {
   children: ReactNode;
@@ -67,6 +68,9 @@ export const FirebaseProvider: React.FC<FirebaseProviderProps> = ({
     isUserLoading: !auth.currentUser, // If no user, we are loading
     userError: null,
   });
+  
+  const router = useRouter();
+  const pathname = usePathname();
 
   // Effect to subscribe to Firebase auth state changes
   useEffect(() => {
@@ -74,6 +78,15 @@ export const FirebaseProvider: React.FC<FirebaseProviderProps> = ({
       auth,
       (firebaseUser) => { // Auth state determined
         setUserAuthState({ user: firebaseUser, isUserLoading: false, userError: null });
+
+        // Redirect logic after auth state is confirmed
+        if (firebaseUser) {
+            // If user is logged in and is on a public page (like login/signup), redirect to dashboard
+             if (pathname === '/sign-in' || pathname === '/sign-up' || pathname === '/') {
+                router.push('/dashboard');
+            }
+        }
+
       },
       (error) => { // Auth listener error
         console.error("FirebaseProvider: onAuthStateChanged error:", error);
@@ -81,7 +94,7 @@ export const FirebaseProvider: React.FC<FirebaseProviderProps> = ({
       }
     );
     return () => unsubscribe(); // Cleanup
-  }, [auth]); // Depends on the auth instance
+  }, [auth, pathname, router]); // Depends on the auth instance
 
   // Memoize the context value
   const contextValue = useMemo((): FirebaseContextState => {

@@ -4,7 +4,6 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
-import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { useFirebase, setDocumentNonBlocking, initiateEmailSignUp } from "@/firebase";
 import { doc } from "firebase/firestore";
@@ -33,7 +32,6 @@ const formSchema = z.object({
 });
 
 export function SignUpForm() {
-  const router = useRouter();
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
   const { auth, firestore } = useFirebase();
@@ -92,7 +90,7 @@ export function SignUpForm() {
       description: "Bem-vindo! Redirecionando para o seu painel.",
     });
 
-    router.push("/dashboard");
+    // O redirecionamento será tratado pelo FirebaseProvider
   }
 
   return (
