@@ -23,12 +23,12 @@ import { useDashboard } from "@/app/dashboard/layout";
 
 
 export function UserNav() {
-  const { user, isUserLoading } = useUser();
+  const { user, isUserLoading: isAuthLoading } = useUser();
   const { auth } = useFirebase();
   const router = useRouter();
 
-  const { company, isLoading: isCompanyLoading } = useDashboard();
-  const isLoading = isUserLoading || isCompanyLoading;
+  const { company, isLoading: isDashboardLoading } = useDashboard();
+  const isLoading = isAuthLoading || isDashboardLoading;
 
   const userAvatar = PlaceHolderImages.find((p) => p.id === "avatar1");
 
